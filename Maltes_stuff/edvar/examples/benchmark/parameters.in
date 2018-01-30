@@ -1,0 +1,48 @@
+[aim]
+Nbath = 6
+NimpOrbs = 1
+epsImp = -2.0
+UImp = 4.0
+JImp = 0.0
+#epsBath1 = -1.4,-1.0, -0.6,-0.2, 0.2, 0.6
+epsBath1 = -1.0, -0.6,-0.2, 0.2, 0.6, 1.0
+vBath1 = 0.9,0.9,0.9,0.9,0.9,0.9
+beta = 150
+onlyGroundState = True
+readRealMat = False
+numDeg = 1
+deg1 = 0
+
+[algo]
+optOnlyBath = False
+maxIterOuter = 1500
+deltaOuter = 1e-7
+scratchDir = '/work/mschueler/temp/'
+fitLegendre = False
+fitGunSch = True
+show = False
+firstGuessCafKrauth = False
+weightFunc =0
+legendreOrder=3
+#firstGuess = -2.09657815,  2.12733912, -1.59806214
+firstGuess = -1.94827373,  2.01163154, -0.6185981
+#firstGuess = -1.96558477,  2.37637821, 0.0
+#firstGuess = 2.12733912, -1.59806214
+#firstGuess = 2.0, 0.0
+
+[ed]
+#Nmin = 2
+#Nmax = 2
+calcSpectra=False
+idelta=0.005
+numW=50000
+minW=-25
+maxW=25
+betaCutOffExpecValue=0.0
+[hf]
+maxIter = 100
+minDiff = 1e-12
+mixing = 0.5
+
+
+

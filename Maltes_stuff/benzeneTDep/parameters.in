@@ -1,0 +1,56 @@
+[aim]
+Nbath = 0
+NimpOrbs = 6
+epsImp = 0.0,0.0,0.0,0.0,0.0,0.0
+UImp = 0.0
+JImp = 0.0
+beta = 9.0
+onlyGroundState = False
+readRealMat = False
+calculateCrystalField = False
+overRideV_Deg_Check = True
+numDeg = 0
+deg1 = 0,1,2,3,4
+#numDeg = 4
+#deg1 = 0
+#deg2 = 1,3
+#deg3 = 2
+#deg4 = 4
+degeneracyTol = 0.01
+
+[algo]
+optOnlyBath = False
+maxIterOuter = 0
+#scratchDir = '/work/mschueler/temp/'
+scratchDir = '/das/mschueler/temp/'
+fitLegendre = True
+show = False
+#firstGuess =-27.26632, -28.0223439,  1.64487, 1.067312, 3.06762622, -2.34628
+firstGuessCafKrauth = True
+weightFunc = 0
+startV = 0.0, 0.15
+startE = -1e-16, 1e-16
+
+[realistichyb]
+epsMin = -0.5
+epsMax = 0.5
+nDisk = 20
+idelta = 0.05
+checkByPlot = True
+
+[hf]
+maxIter = 100
+minDiff = 1e-6
+mixing = 0.99
+
+[ed]
+Nmin=0
+Nmax=200
+arnoldiIters = 501
+Nvalues = 15
+#tmpDirArpack = '/work/mschueler/temp/arpackInter'
+#ARPACK = False
+calcSpectra=False
+
+
+

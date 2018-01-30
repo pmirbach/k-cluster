@@ -1,0 +1,38 @@
+[aim]
+Nbath = 6
+NimpOrbs = 1
+epsImp = -2.0
+UImp = 4.0
+JImp = 0.0
+epsBath1 = -1.0, -0.6, -0.2, 0.2, 0.6,1.0
+vBath1 = 0.9, 0.9,0.9,0.9,0.9,0.9
+#epsBath1 = -0.0, -0.0, 0.0, 0.0, 0.0, 0.0
+#vBath1 = 0.0,0.0,0.0,0.0,0.0,0.0
+beta = 3200.0
+onlyGroundState = True
+readRealMat = False
+numDeg = 1
+deg1 = 0
+
+#[algo]
+#fitLegendre = False
+#optOnlyBath = False
+#scratchDir = '/work/mschueler/temp/'
+[ed]
+#Nmin = 6
+#Nmax=10
+method = 'sparse'
+numW = 3000
+minW = -10
+maxW = 10
+idelta = 0.1
+#Nmin=6
+#Nmax=8
+Nthreshhold = 4000
+Nvalues = 100
+arnoldiIters=2000
+betaCutOffExpecValue=1e-25
+calcSpectra = False
+
+[hf]
+mixing=0.95

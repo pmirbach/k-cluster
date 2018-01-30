@@ -1,0 +1,23 @@
+This is the variational exact diagonalization solver.
+Read http://arxiv.org/abs/1503.09047 to understand :)
+
+Author: Malte Schüler
+
+1.) Installation
+
+This software uses python3. Make your life easy and use anaconda
+as a python distribution, select python3:
+http://conda.pydata.org/miniconda.html
+
+This software depends on following python packages:
+numpy scipy pickle pyqs glob
+All of them but pyqs are pretty common and available via pip/conda.
+To get pyqs, ask Christian Renk (crenk@uni-bremen.de).
+
+Now install via 'python setup.py install'
+
+2.) Usage:
+TODO
+
+3.) License
+TODO
