@@ -28,64 +28,75 @@ par.beta = 200
 par.Nbath = 0 
 par.NimpOrbs = 4
 par.epsBath = np.array([0.0,0.0,0.0,0.0,0.0])
-par.NfStates =2*(par.Nbath*par.NimpOrbs)+par.NimpOrbs*2
+par.NfStates = 2*(par.Nbath*par.NimpOrbs)+par.NimpOrbs*2
 nameStrings = hel.makeNameStrings(par) 
 print(nameStrings)
 ham, blockCar = hel.findAndSetBlockCar(cfg,par,nameStrings)
 
 spStr = ['_up', '_dn']
 
-uVec = np.arange(0.0,10.0,0.1)
-betaVec = np.arange(20.0)
-double = np.zeros((betaVec.size,uVec.size,4))
+#uVec = np.arange(0.0,5.0,0.1)
+uVec = np.array([2.0])
+betaVec = np.array([20.0])
+
+par.beta = 20.0
 
 Energy = np.zeros(uVec.size)
 
 
-if False:
-    double = np.load('doubleOcc.npy')
-else:
-    for iU in range(uVec.size):
-        par.mu = uVec[iU]*0.0
-        for iB in range(betaVec.size):
-            H = 0.0*copy.copy(ham['fullLocal'])
-            par.beta = betaVec[iB]
-            
-            for ii in range(par.NimpOrbs):
-                H  = H + uVec[iU]*(
-                    ham['oper']['+imp'+str(ii+1)+'_up']*
-                    ham['oper']['-imp'+str(ii+1)+'_up']*
-                    ham['oper']['+imp'+str(ii+1)+'_dn']*
-                    ham['oper']['-imp'+str(ii+1)+'_dn']
-                    )
-            for ii in range(par.NimpOrbs):
-                jj = (ii+1)%par.NimpOrbs
-                for iS in range(2):
-                    H = H + 1.0*(
-                        ham['oper']['+imp'+str(ii+1)+spStr[iS]]*
-                        ham['oper']['-imp'+str(jj+1)+spStr[iS]]
-                        +
-                        ham['oper']['+imp'+str(jj+1)+spStr[iS]]*
-                        ham['oper']['-imp'+str(ii+1)+spStr[iS]]
-                    )
-            eigVals,eigVecs = hel.diagonalize_blocks(H,ham['diagblk_qnum'],ham['diagblk_dim'],ham['diagblk_ind'],'full',cfg['ed'])
-            ZZ1Til,ZZ1BlockTil,Phi,NG,E0,eigVecs,thermo,minIndex,E0Index = hel.partitionFunction(par,ham,eigVals,eigVecs,cfg)
-            for jj in range(par.NimpOrbs//2+1):
-                a=hel.calcExpecValueRes(eigVecs,ham['diagblk_ind'],ham['diagblk_qnum'],NG,ZZ1BlockTil,ZZ1Til,ham['oper']['+imp'+str(1)+'_up'] * ham['oper']['-imp'+str(1)+'_up']*ham['oper']['+imp'+str(jj+1)+'_dn'] * ham['oper']['-imp'+str(jj+1)+'_dn'],cfg,par,thermo)
-                #a=hel.calcExpecValueRes(eigVecs,ham['diagblk_ind'],ham['diagblk_qnum'],NG,ZZ1BlockTil,ZZ1Til,ham['oper']['+imp'+str(ii+1)+'_up'] * ham['oper']['-imp'+str(ii+1)+'_up'],cfg,par,thermo)
-            
-                a+=hel.calcExpecValueRes(eigVecs,ham['diagblk_ind'],ham['diagblk_qnum'],NG,ZZ1BlockTil,ZZ1Til,ham['oper']['+imp'+str(1)+'_up'] * ham['oper']['-imp'+str(1)+'_up']*ham['oper']['+imp'+str(jj+1)+'_up'] * ham['oper']['-imp'+str(jj+1)+'_up'],cfg,par,thermo)
-                double[iB,iU,jj] = a
-                
-        Energy[iU]=hel.calcExpecValueRes(eigVecs,ham['diagblk_ind'],ham['diagblk_qnum'],NG,ZZ1BlockTil,ZZ1Til,
-                                            H,cfg,par,thermo)
 
-plt.plot(uVec,Energy)
-#plt.plot(uVec,Energy_test[0,:],'--')
-#plt.plot(uVec,Energy_cheat[0,:],'--')
-
-plt.show()
+for iU in range(uVec.size):
+    par.mu = uVec[iU]*0.0
+    
+    H = 0.0*copy.copy(ham['fullLocal'])
+    
+    for ii in range(par.NimpOrbs):
+        H  = H + uVec[iU]*(
+            ham['oper']['+imp'+str(ii+1)+'_up']*
+            ham['oper']['-imp'+str(ii+1)+'_up']*
+            ham['oper']['+imp'+str(ii+1)+'_dn']*
+            ham['oper']['-imp'+str(ii+1)+'_dn']
+            )
+    for ii in range(par.NimpOrbs):
+        jj = (ii+1)%par.NimpOrbs
+        for iS in range(2):
+            H = H + 1.0*(
+                ham['oper']['+imp'+str(ii+1)+spStr[iS]]*
+                ham['oper']['-imp'+str(jj+1)+spStr[iS]]
+                +
+                ham['oper']['+imp'+str(jj+1)+spStr[iS]]*
+                ham['oper']['-imp'+str(ii+1)+spStr[iS]]
+            )
+    
+#    H2 = H.todense()
+        
+    eigVals,eigVecs = hel.diagonalize_blocks(H,ham['diagblk_qnum'],ham['diagblk_dim'],ham['diagblk_ind'],'full',cfg['ed'])
+    ZZ1Til,ZZ1BlockTil,Phi,NG,E0,eigVecs,thermo,minIndex,E0Index = hel.partitionFunction(par,ham,eigVals,eigVecs,cfg)
+#    for jj in range(par.NimpOrbs//2+1):
+#        a=hel.calcExpecValueRes(eigVecs,ham['diagblk_ind'],ham['diagblk_qnum'],NG,ZZ1BlockTil,ZZ1Til,ham['oper']['+imp'+str(1)+'_up'] * ham['oper']['-imp'+str(1)+'_up']*ham['oper']['+imp'+str(jj+1)+'_dn'] * ham['oper']['-imp'+str(jj+1)+'_dn'],cfg,par,thermo)
+#        #a=hel.calcExpecValueRes(eigVecs,ham['diagblk_ind'],ham['diagblk_qnum'],NG,ZZ1BlockTil,ZZ1Til,ham['oper']['+imp'+str(ii+1)+'_up'] * ham['oper']['-imp'+str(ii+1)+'_up'],cfg,par,thermo)
+#    
+#        a+=hel.calcExpecValueRes(eigVecs,ham['diagblk_ind'],ham['diagblk_qnum'],NG,ZZ1BlockTil,ZZ1Til,ham['oper']['+imp'+str(1)+'_up'] * ham['oper']['-imp'+str(1)+'_up']*ham['oper']['+imp'+str(jj+1)+'_up'] * ham['oper']['-imp'+str(jj+1)+'_up'],cfg,par,thermo)
+#        double[iB,iU,jj] = a
             
+    Energy[iU]=hel.calcExpecValueRes(eigVecs,ham['diagblk_ind'],ham['diagblk_qnum'],NG,ZZ1BlockTil,ZZ1Til,
+                                        H,cfg,par,thermo)
+
+x = ham['oper']['+imp1_up']
+
+print(type(x))
+x2 = x.todense()
+
+#plt.plot(uVec,Energy)
+#plt.show()
+    
+    
+    
+
+#fig, ax = plt.subplots()
+#cax = plt.imshow(H2, interpolation='nearest')
+#cbar = fig.colorbar(cax)
+#plt.show()
             
             
 #    np.save('doubleOcc',double)
