@@ -76,6 +76,30 @@ def E44(U,t):
     return H
 
 
+def E44_exc(U,t):
+    u = U/4
+    H = np.array([
+        [3*u-4*t,   u],
+        [u,     3*u+4*t]
+        ])
+    return H
+
+
+
+def E44_eff(U, Ue, t):
+    u = U/4
+    ue = Ue/4
+    H = np.array([
+        [3*u-4*t,       sqrt(6)*ue,      ue,                  0, 0, 0],
+        [sqrt(6)*ue,     3*U/2,          -sqrt(6)*ue,         0, 0, 0],
+        [ue,             -sqrt(6)*ue,     3*u+4*t,            0, 0, 0],
+        [0, 0, 0,       5*u-4*t,        -sqrt(2)*ue,           ue],
+        [0, 0, 0,       -sqrt(2)*ue,     3*U/2,          -sqrt(2)*ue],
+        [0, 0, 0,       ue,              -sqrt(2)*ue,     5*u+4*t]
+        ])
+    return H
+
+
 
 Phi_0 = np.zeros(12)
 Phi_1 = np.zeros(12)
@@ -137,6 +161,15 @@ def E_Psi_4(x):
     Psi = x[0] * Phi_0 + x[1] * Phi_1 + x[2] * Phi_2
     return np.min(np.dot(Psi, H * Psi ))
 
+
+#def get_E(x, H, Psi):
+#    return 
+    
+
+
+
+
+
 x_0 = np.ones(2)
 cons = {'type': 'eq', 'fun': lambda x: np.dot(x,x) - 1}
 
@@ -148,9 +181,14 @@ x_fun_4 = []
 
 eigs = np.zeros((12,U_vec.size))
 
+E_exc = np.zeros(U_vec.size)
 
 for i in np.arange(U_vec.size):
-
+    
+#    H_exc = E44_exc(U_vec[i], t=1)
+#    w,v = LA.eig(H_exc)
+#    E_exc[i] = np.min(w)
+    
     H1 = A44(U_vec[i],t=1)
     H2 = E44(U_vec[i],t=1)
     H = block_diag(H1,H2)
@@ -196,7 +234,7 @@ for i in np.arange(U_vec.size):
 
 
 
-
+#test = 3 * U_vec/4 - sqrt(16 + (U_vec/4)**2)
 
 fig, ax = plt.subplots()
 
@@ -204,7 +242,7 @@ ax.plot(U_vec,E,label='exact',color='blue')
 ax.plot(U_vec,E_HF,'--',label='|0011> HF',color='blue')
 
 ax.plot(U_vec,E_0,ls=':',color='black',linewidth=3,label='a|0011> + b |0022>')
-ax.plot(U_vec,E_1,ls=':',color='red',linewidth=1,label='a|0011> + b |0033>')
+#ax.plot(U_vec,E_1,ls=':',color='red',linewidth=1,label='a|0011> + b |0033>')
 ax.plot(U_vec,E_2,ls=':',color='green',linewidth=1,label='a|0011> + b |1122>')
 ax.plot(U_vec,E_3,ls=':',color='grey',linewidth=1,label='a|0011> + b |2233>')
 
@@ -215,9 +253,13 @@ ax.plot(U_vec,E_3,ls=':',color='grey',linewidth=1,label='a|0011> + b |2233>')
 #ax.plot(U_vec,E_3,ls='-.',label='|1122>')
 #ax.plot(U_vec,E_4,ls=':',label='|1133>')
 
+#ax.plot(U_vec, E_exc)
+#ax.plot(U_vec, test)
+
 ax.set(ylabel='energy E', xlabel='U/t')
 ax.legend(loc='best')
 fig.show()
+
 
 
 
@@ -235,20 +277,22 @@ fig.show()
 #fig2.show()
 
 
-fig3, ax3 = plt.subplots()
-
-markers = ["-", "--", "x"]
-colors = ["b", "g", "r", "c", "m", "y", "k"]
-ls = [a + b for a, b in product(markers, colors)]
 
 
-for i in range(eigs.shape[0]):
-    ax3.plot(U_vec, eigs[i,:], ls[i], label=i)
-
-
-ax3.legend(loc='best')
-
-fig3.show()
+#fig3, ax3 = plt.subplots()
+#
+#markers = ["-", "--", "x"]
+#colors = ["b", "g", "r", "c", "m", "y", "k"]
+#ls = [a + b for a, b in product(markers, colors)]
+#
+#
+#for i in range(eigs.shape[0]):
+#    ax3.plot(U_vec, eigs[i,:]**2, ls[i], label=i)
+#
+#
+#ax3.legend(loc='best')
+#
+#fig3.show()
 
 
 
