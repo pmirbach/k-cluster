@@ -22,9 +22,12 @@ from scipy.optimize import minimize
 #res_0 = minimize(fun1(x, a=2), x0, method='SLSQP')
 
 
-a = [4,2,3]
-b = [[1,0,0],[0,1,0],[0,0,1]]
+#a = [4,2,3]
+#b = [[1,0,0],[0,1,0],[0,0,1]]
+#
+#c = np.dot(a,b)
+#
+#print(c)
 
-c = np.dot(a,b)
-
-print(c)
+ansatz_list = ['exact', 'HF', 'exc', 'Psi_0', 'Psi_1', 'Psi_2', 'Psi_3', 'Psi_4', 'Psi_3_eff']
+print(len(ansatz_list))
