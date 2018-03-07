@@ -14,11 +14,17 @@ from scipy.optimize import minimize
 
 
 
-def fun1(x,a):
-    return a * np.dot(x,x)
+#def fun1(x,a):
+#    return a * np.dot(x,x)
+#
+#x0 = np.arange([1,1,1])
+#
+#res_0 = minimize(fun1(x, a=2), x0, method='SLSQP')
 
-x0 = np.arange([1,1,1])
 
-res_0 = minimize(fun1(x, a=2), x0, method='SLSQP')
+a = [4,2,3]
+b = [[1,0,0],[0,1,0],[0,0,1]]
 
+c = np.dot(a,b)
 
+print(c)

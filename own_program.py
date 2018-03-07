@@ -86,6 +86,20 @@ def E44_exc(U,t):
 
 
 
+def A44_eff(U,Ue,t):
+    u = U/4
+    ue = Ue/4
+    H = np.array([
+        [U,     0,      0,      0,      0,      0],
+        [0,     5*u-4*t,      sqrt(2)*ue,    -sqrt(2)*ue,   -sqrt(2)*ue,   ue],
+        [0,     sqrt(2)*ue,    U,              0,              Ue/2,            sqrt(2)*ue],
+        [0,     -sqrt(2)*ue,   0,              U,              -Ue/2,           -sqrt(2)*ue],
+        [0,     -sqrt(2)*ue,   Ue/2,            -Ue/2,           3*U/2,          -sqrt(2)*ue],
+        [0,     ue,            sqrt(2)*ue,    -sqrt(2)*ue,   -sqrt(2)*ue,   5*u+4*t]
+        ])
+    return H
+
+
 def E44_eff(U, Ue, t):
     u = U/4
     ue = Ue/4
@@ -134,6 +148,7 @@ E_2 = np.zeros(U_vec.size)
 E_3 = np.zeros(U_vec.size)
 E_4 = np.zeros(U_vec.size)
 
+E_3_eff = np.zeros(U_vec.size)
 
 
 def E_Psi_0(x):
@@ -162,11 +177,16 @@ def E_Psi_4(x):
     return np.min(np.dot(Psi, H * Psi ))
 
 
-#def get_E(x, H, Psi):
-#    return 
-    
+
+def E_Psi_3_eff(x):
+    # a |0011> + b|2233>
+    Psi = x[0] * Phi_0 + x[1] * Phi_4
+    return np.min(np.dot(Psi, H_eff * Psi ))
 
 
+def get_E(x, Phi_list, H):
+    Psi = np.dot(x, Phi_list)
+    return np.min(np.dot(Psi, H * Psi))
 
 
 
@@ -185,9 +205,9 @@ E_exc = np.zeros(U_vec.size)
 
 for i in np.arange(U_vec.size):
     
-#    H_exc = E44_exc(U_vec[i], t=1)
-#    w,v = LA.eig(H_exc)
-#    E_exc[i] = np.min(w)
+    H_exc = E44_exc(U_vec[i], t=1)
+    w,v = LA.eig(H_exc)
+    E_exc[i] = np.min(w)
     
     H1 = A44(U_vec[i],t=1)
     H2 = E44(U_vec[i],t=1)
@@ -201,26 +221,34 @@ for i in np.arange(U_vec.size):
     eigs[:,i] = v[:,idx[0]]
     
     
+    H1_eff = A44_eff(U_vec[i], U_vec[i]*1.5, t=1)
+    H2_eff = E44_eff(U_vec[i], U_vec[i]*1.5, t=1)
+    H_eff = block_diag(H1_eff,H2_eff)
+    
 #    if i == 0:
 #        E = np.zeros((U_vec.size,w.size))
     
 #    E[i,:] = np.sort(w)
     res_0 = minimize(E_Psi_0, x_0, method='SLSQP',constraints=cons)
-    res_1 = minimize(E_Psi_1, x_0, method='SLSQP',constraints=cons)
+#    res_1 = minimize(E_Psi_1, x_0, method='SLSQP',constraints=cons)
     res_2 = minimize(E_Psi_2, x_0, method='SLSQP',constraints=cons)
     res_3 = minimize(E_Psi_3, x_0, method='SLSQP',constraints=cons)
 #    res_4 = minimize(E_Psi_4, (1,1,1), method='SLSQP',constraints=cons)
     
-#    print(res)
+    res_test = minimize(get_E, x_0, args=([Phi_0, Phi_1], H), method='SLSQP',constraints=cons)
+    
+    res_3_eff = minimize(E_Psi_3_eff, x_0, method='SLSQP',constraints=cons)
     
     E_0[i] = res_0.fun
-    E_1[i] = res_1.fun
+#    E_1[i] = res_1.fun
     E_2[i] = res_2.fun
     E_3[i] = res_3.fun
 #    E_4[i] = res_4.fun
     
+    E_3_eff[i] = res_3_eff.fun
+    
     x_fun_0.append((res_0.x, res_0.fun))
-    x_fun_1.append((res_1.x, res_1.fun))
+#    x_fun_1.append((res_1.x, res_1.fun))
     x_fun_2.append((res_2.x, res_2.fun))
     x_fun_3.append((res_3.x, res_3.fun))
 #    x_fun_4.append((res_4.x, res_4.fun))
@@ -233,8 +261,6 @@ for i in np.arange(U_vec.size):
 #    E_4[i] = np.min(np.dot(Phi_4, H * Phi_4 ))
 
 
-
-#test = 3 * U_vec/4 - sqrt(16 + (U_vec/4)**2)
 
 fig, ax = plt.subplots()
 
@@ -253,8 +279,11 @@ ax.plot(U_vec,E_3,ls=':',color='grey',linewidth=1,label='a|0011> + b |2233>')
 #ax.plot(U_vec,E_3,ls='-.',label='|1122>')
 #ax.plot(U_vec,E_4,ls=':',label='|1133>')
 
-#ax.plot(U_vec, E_exc)
-#ax.plot(U_vec, test)
+ax.plot(U_vec, E_exc)
+
+
+ax.plot(U_vec,E_3_eff,ls=':',color='red',linewidth=1,label='a|0011> + b |0033>')
+
 
 ax.set(ylabel='energy E', xlabel='U/t')
 ax.legend(loc='best')
