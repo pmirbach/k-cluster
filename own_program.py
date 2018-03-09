@@ -18,9 +18,10 @@ from scipy.linalg import block_diag
 from scipy.optimize import minimize
 
 from itertools import product
+from plot_scripts import plot_font_size
 
 
-U_vec = np.linspace(0,10,50)
+U_vec = np.linspace(0,8,200)
 
 
 Phi_0 = np.zeros(12)
@@ -49,38 +50,6 @@ Phi_4[-4] = -1
 
 
 
-
-def E_Psi_0(x):
-    # a |0011> + b|0022>
-    Psi = x[0] * Phi_0 + x[1] * Phi_1
-    return np.min(np.dot(Psi, H * Psi ))
-
-def E_Psi_1(x):
-    # a |0011> + b|0033>
-    Psi = x[0] * Phi_0 + x[1] * Phi_2
-    return np.min(np.dot(Psi, H * Psi ))
-
-def E_Psi_2(x):
-    # a |0011> + b|1122>
-    Psi = x[0] * Phi_0 + x[1] * Phi_3
-    return np.min(np.dot(Psi, H * Psi ))
-
-def E_Psi_3(x):
-    # a |0011> + b|2233>
-    Psi = x[0] * Phi_0 + x[1] * Phi_4
-    return np.min(np.dot(Psi, H * Psi ))
-
-def E_Psi_4(x):
-    # a |0011> + b|0022> + c|0033>
-    Psi = x[0] * Phi_0 + x[1] * Phi_1 + x[2] * Phi_2
-    return np.min(np.dot(Psi, H * Psi ))
-
-
-
-def E_Psi_3_eff(x):
-    # a |0011> + b|2233>
-    Psi = x[0] * Phi_0 + x[1] * Phi_4
-    return np.min(np.dot(Psi, H_eff * Psi ))
 
 def get_H(U, t=1):
     H1 = A44(U, t)
@@ -130,7 +99,7 @@ for i in np.arange(U_vec.size):
     H = get_H(U)    
     H_exc = E44_exc(U, t=1)
     
-    U_eff = U * 1.5
+    U_eff = U * 1.2
     H_eff = get_H_eff(U, U_eff)
     
     
@@ -158,21 +127,24 @@ for i in np.arange(U_vec.size):
     
     res_0 = minimize(get_E, [1,1], args=([Phi_0, Phi_1], H), method='SLSQP',constraints=cons)
     
-    res_1 = minimize(get_E, [1,1], args=([Phi_0, Phi_4], H), method='SLSQP',constraints=cons)
+#    res_1 = minimize(get_E, [1,1], args=([Phi_0, Phi_4], H), method='SLSQP',constraints=cons)
     
-    res_2 = minimize(get_E, [1,1], args=([Phi_0, Phi_3], H), method='SLSQP',constraints=cons)
-    res_3 = minimize(get_E, [1,1], args=([Phi_0, Phi_4], H), method='SLSQP',constraints=cons)
-    res_4 = minimize(get_E, [1,1], args=([Phi_2, Phi_4], H), method='SLSQP',constraints=cons)
+#    res_2 = minimize(get_E, [1,1], args=([Phi_0, Phi_3], H), method='SLSQP',constraints=cons)
+    res_3 = minimize(get_E, [1,1,1], args=([Phi_0, Phi_1, Phi_3, Phi_4], H), method='SLSQP',constraints=cons)
+#    res_3 = minimize(get_E, [1,1], args=([Phi_0, Phi_4], H), method='SLSQP',constraints=cons)
+#    res_4 = minimize(get_E, [1,1], args=([Phi_2, Phi_4], H), method='SLSQP',constraints=cons)
     
-    res_3_eff = minimize(get_E, [1,1], args=([Phi_0, Phi_4], H_eff), method='SLSQP',constraints=cons)
+#    res_3_eff = minimize(get_E, [1,1], args=([Phi_0, Phi_4], H_eff), method='SLSQP',constraints=cons)
+    res_3_eff = minimize(get_E, [1,1,1,1], args=([Phi_0, Phi_1, Phi_3, Phi_4], H_eff), method='SLSQP',constraints=cons)
+
 
 #    res_3_eff = minimize(E_Psi_3_eff, x_0, method='SLSQP',constraints=cons)
     
     E[i,3] = res_0.fun
-    E[i,4] = res_1.fun
-    E[i,5] = res_2.fun
+#    E[i,4] = res_1.fun
+#    E[i,5] = res_2.fun
     E[i,6] = res_3.fun
-    E[i,7] = res_4.fun
+#    E[i,7] = res_4.fun
     
     E[i,8] = res_3_eff.fun
 
@@ -207,23 +179,46 @@ for i in np.arange(U_vec.size):
 
 
 
+def get_cdd(a):
+    s = r'\(c_{' + str(a) + r'\uparrow}^{\dagger}c_{' + str(a) + r'\downarrow}^{\dagger}\)'
+    return s
+
+def ket():
+    s = r'\left|0\right\rangle'
+    return s
+
+#print(ket(1))
+
+a = get_cdd(0)
 
 
+plot_font_size('poster')
+lw = 3
+
+plt.rc('text', usetex=True)
+#plt.rc('text.latex', preamble=r'\usepackage{braket}')
+#plt.verbose.level = 'debug-annoying'
+#plt.rc('font', family='serif')
 
 
 
 fig, ax = plt.subplots()
 
-for i in range(5):
-    ax.plot(U_vec, E[:,i], label=ansatz_list[i])
+#for i in range(5):
+#    ax.plot(U_vec, E[:,i], label=ansatz_list[i])
 
-#ax.plot(U_vec, E[:,0], label='exact', color='blue')
+
+ax.plot(U_vec, E[:,0], linewidth=lw, label=r'Exact solution', color='black')
 #ax.plot(U_vec, E[:,1], '--', label='|0011> HF', color='blue')
-#
+HF_theo = -4 + U_vec*3/4
+ax.plot(U_vec, HF_theo, '-', linewidth=lw, label=r'Hartree Fock', color='forestgreen')
+#ax.plot(U_vec, HF_theo, '-', linewidth=lw, label=r'Hartree Fock: \Psi = ' + get_cdd(0) + get_cdd(1) + ket(), color='red')
+ax.plot(U_vec, E[:,2], linewidth=lw, label=r'Reduced Fock space', color='orange')
+
 #ax.plot(U_vec, E[:,3], ls=':', color='black', linewidth=3, label='a|0011> + b |0022>')
-##ax.plot(U_vec,E_1,ls=':',color='red',linewidth=1,label='a|0011> + b |0033>')
+#ax.plot(U_vec,E_1,ls=':',color='red',linewidth=1,label='a|0011> + b |0033>')
 #ax.plot(U_vec, E[:,5], ls=':', color='green', linewidth=1, label='a|0011> + b |1122>')
-#ax.plot(U_vec, E[:,6], ls=':', color='grey', linewidth=1,label='a|0011> + b |2233>')
+ax.plot(U_vec, E[:,6], ls='-', color='blue', linewidth=lw, label=r'Variational state: ' + r'\left| \Psi_{1} \right \rangle')
 
 #ax.plot(U_vec,E_4,ls='-.',color='red',linewidth=1,label='a|0011> + b |0022> + c |0033>')
 
@@ -232,13 +227,14 @@ for i in range(5):
 #ax.plot(U_vec,E_3,ls='-.',label='|1122>')
 #ax.plot(U_vec,E_4,ls=':',label='|1133>')
 
-#ax.plot(U_vec, E[:,2], label='Excerpt')
 
 
-#ax.plot(U_vec,E[:,8], ls=':', color='red', linewidth=1, label='a|0011> + b |0033>')
 
+ax.plot(U_vec,E[:,8], ls='-', color='red', linewidth=lw, label=r'Variational state and effective Hamiltonian')
 
-ax.set(ylabel='energy E', xlabel='U/t')
+ax.axis('tight')
+
+ax.set(ylabel='Energy (arb. units)', xlabel='U / t')
 ax.legend(loc='best')
 fig.show()
 
