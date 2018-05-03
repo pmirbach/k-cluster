@@ -9,6 +9,7 @@ Created on Wed Jan 31 13:32:13 2018
 import numpy as np
 #import edvaraux.newHelpersMulOrb as hel
 from scipy.optimize import minimize
+from matplotlib import pyplot as plt
 
 
 
@@ -29,5 +30,51 @@ from scipy.optimize import minimize
 #
 #print(c)
 
-ansatz_list = ['exact', 'HF', 'exc', 'Psi_0', 'Psi_1', 'Psi_2', 'Psi_3', 'Psi_4', 'Psi_3_eff']
-print(len(ansatz_list))
+#ansatz_list = ['exact', 'HF', 'exc', 'Psi_0', 'Psi_1', 'Psi_2', 'Psi_3', 'Psi_4', 'Psi_3_eff']
+#print(len(ansatz_list))
+
+
+#a = (0,1)
+#b = (2,3)
+#
+#c = a+b
+#
+#print(c)
+#
+#print([1,2,3]+[4,5,6])
+#
+#print(c[1:2])
+
+
+
+
+#a = [[1,2],[3,4]]
+#print(a)
+#b = np.array(a)
+#print(b)
+
+
+
+a = np.arange(100).reshape(10,10)
+print(a)
+print(np.sum(a, axis=1))
+
+
+plt.imshow(a)
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
