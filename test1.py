@@ -55,13 +55,21 @@ from matplotlib import pyplot as plt
 
 
 
-a = np.arange(100).reshape(10,10)
+#a = np.arange(100).reshape(10,10)
+#print(a)
+#print(np.sum(a, axis=1))
+#
+#
+#plt.imshow(a)
+#plt.show()
+
+#print(np.array([1,2,3])+4)
+
+a = np.zeros(20)
+inds = np.array([1,5,12])
+a[inds+3] = 1
+
 print(a)
-print(np.sum(a, axis=1))
-
-
-plt.imshow(a)
-plt.show()
 
 
 
