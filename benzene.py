@@ -12,7 +12,11 @@ import copy
 import scipy.sparse as sp
 
 from scipy.optimize import minimize
+from scipy.linalg import expm
+
 from plot_scripts import plot_font_size
+
+import pdb
 
 import sys
 sys.path.append("../../")
@@ -43,7 +47,7 @@ ham, blockCar = hel.findAndSetBlockCar(cfg,par,nameStrings)
 spStr = ['_up', '_dn']
 
 #uVec = np.arange(0.0,20.0,0.2)
-uVec = np.linspace(start=0.0, stop=8.0, num=50)
+uVec = np.linspace(start=0.0, stop=8.0, num=100)
 #uVec = np.array([7.6])
 #betaVec = np.array([20.0])
 
@@ -51,6 +55,8 @@ par.beta = 20.0
 
 Energy = np.zeros(uVec.size)
 Energy_var = np.zeros(uVec.size)
+Energy_gutzwiller = np.zeros(uVec.size)
+Energy_baeriswyl = np.zeros(uVec.size)
 
 
 
@@ -65,9 +71,13 @@ eig_vals_save = np.zeros((v, uVec.size))
 
 
 
-
-def get_states_N4(oper, ind_0, ind_1):
+def get_states_Full(oper, ind_0, ind_1):
     oper_diag_N4 = np.diag(oper)[ind_0:ind_1]
+    oper_diag_N4_nonzero = np.nonzero(oper_diag_N4)
+    return oper_diag_N4_nonzero[0]
+
+def get_states_N4(oper):
+    oper_diag_N4 = np.diag(oper)
     oper_diag_N4_nonzero = np.nonzero(oper_diag_N4)
     return oper_diag_N4_nonzero[0]
 
@@ -102,6 +112,7 @@ for i in range(par.NimpOrbs):
 
 
 
+
 oper_2double = np.zeros((36,36))
 for i in range(par.NimpOrbs-1):
     for j in range(i+1, par.NimpOrbs):
@@ -109,15 +120,13 @@ for i in range(par.NimpOrbs-1):
 
 
 
-single_states_half = get_states_N4(oper_single, ind0, ind1)
-double_x2_states_half = get_states_N4(oper_2double, ind0, ind1)
+single_states_half = get_states_Full(oper_single, ind0, ind1)
+double_x2_states_half = get_states_N4(oper_2double)
 
 #print(single_states_half, type(single_states_half))
 #print(double_x2_states_half)
 
 print('\n{}\n'.format(('-')*70))
-
-
 
 
 def get_E(x, Phi_list, H):
@@ -127,20 +136,26 @@ x_0 = np.ones(2)
 cons = {'type': 'eq', 'fun': lambda x: np.dot(x,x) - 1}
 
 
+
+#######################################     Gutzwiller      ########################################
+
 def oper_Gutzwiller(g):
     oper_G = np.eye(36)
     for oper in oper_double:
-        oper_G *= (1 - (1 - g)) * oper
+        oper_G *= np.eye(36) - (1 - g) * oper
     return oper_G
         
 
 def get_E_Gutzwiller(x, Psi_0, H):
     oper_G = oper_Gutzwiller(x)
-    Psi_G = oper_G * Psi_0
+    Psi_G = np.dot(oper_G, Psi_0)
+    
     Psi_G /= np.sqrt(np.dot(Psi_G, Psi_G))
     return np.min(np.dot(Psi_G, H * Psi_G))
 #cons_G = {'type': 'ineq', 'fun': lambda x: np.dot(x,x) - 1}
     
+
+
 
 #######################################         Ht         ########################################
 
@@ -165,13 +180,25 @@ Ht_N4 = Ht[ind0:ind1, ind0:ind1]
 Phi_HF_0 = eigVecs_0[ind][:,0]
 Phi_HF_0 /= np.sqrt(np.dot(Phi_HF_0, Phi_HF_0))
 
+Ht_N4_dense = sparse2dense_renk(Ht_N4)
+
+
+#######################################     Baeriswyl      ########################################
+
+def get_E_Baeriswyl(x, Phi_0, H):
+    
+    oper_B = expm(x * Ht_N4_dense)    
+    Psi_B = np.dot(oper_B, Phi_0)    
+    
+    Psi_B /= np.sqrt(np.dot(Psi_B, Psi_B))
+    return np.min(np.dot(Psi_B, H * Psi_B))
 
 
 
+#######################################################################################################
+#######################################    Main Calculation    ########################################
+#######################################################################################################
 
-#print(type(eigVecs_0[ind]), eigVecs_0[ind].shape)
-
-#exit()
 
 
 for iU in range(uVec.size):
@@ -187,9 +214,13 @@ for iU in range(uVec.size):
     H = Ht + HU
     
     ################################################################################################
-    # single + Ht * single
     
-    Phi_0 = np.zeros(256)    
+    H_N4 = H[ind0:ind1, ind0:ind1]
+    
+    ################################################################################################
+    
+    # Our approach
+    Phi_0 = np.zeros(256)
     Phi_0[single_states_half+ind0] = 1
     Phi_0 /= np.sqrt(np.dot(Phi_0, Phi_0))
     
@@ -198,17 +229,22 @@ for iU in range(uVec.size):
     
     res_0 = minimize(get_E, [1,1], args=([Phi_0, Phi_1], H), method='SLSQP',constraints=cons)
     Energy_var[iU] = res_0.fun
-    
     ################################################################################################
+    
     # Gutzwiller
-    
-    res_G = minimize(get_E_Gutzwiller, 1, args=(Phi_HF_0, H), method='SLSQP',bounds=((0,1),))
-    Energy_var[iU] = res_0.fun
-    
+    res_G = minimize(get_E_Gutzwiller, 1, args=(Phi_HF_0, H_N4), method='SLSQP',bounds=((0,1),))
+    Energy_gutzwiller[iU] = res_G.fun
     ################################################################################################
     
-    eigVals,eigVecs = hel.diagonalize_blocks(H,ham['diagblk_qnum'],ham['diagblk_dim'],ham['diagblk_ind'],'full',cfg['ed'])
+    # Baeriswyl
+    Psi_inf_N4 = np.zeros(36)
+    Psi_inf_N4[single_states_half] = 1
+    res_B = minimize(get_E_Baeriswyl, 1, args=(Psi_inf_N4, H_N4), method='SLSQP')    
+    Energy_baeriswyl[iU] = res_B.fun    
+    ################################################################################################
     
+    # Malte
+    eigVals,eigVecs = hel.diagonalize_blocks(H,ham['diagblk_qnum'],ham['diagblk_dim'],ham['diagblk_ind'],'full',cfg['ed'])
     
     eig_vals_save[:,iU] = np.array(eigVals[ind])
     eig_vecs_save[:,iU] = eigVecs[ind][:,0]
@@ -228,15 +264,9 @@ for iU in range(uVec.size):
     
     Energy[iU] = hel.calcExpecValueRes(eigVecs,ham['diagblk_ind'],ham['diagblk_qnum'],NG,ZZ1BlockTil,ZZ1Til,
                                         H,cfg,par,thermo)
-#    print('\n{}\n'.format(('-')*70))
-#    print(uVec[iU])
-#    
-#    print(eig_vals_save[:,iU])
-#    print('\n{}\n'.format(('-')*70))
-#    print(eig_vecs_save[:,iU])
-#    
-#    print('\n{}\n'.format(('-')*70))
-#    exit()
+    
+    
+
 
 
 fig, ax = plt.subplots()
@@ -244,6 +274,9 @@ fig, ax = plt.subplots()
 
 ax.plot(uVec, Energy, label='exact')
 ax.plot(uVec[1:], Energy_var[1:], label=r'$\alpha \cdot$ single + $\beta \cdot H_t \cdot $ single')
+ax.plot(uVec, Energy_gutzwiller,'--', label=r'Gutzwiller')
+ax.plot(uVec, Energy_baeriswyl,'--', label=r'Baeriswyl')
+
 
 ax.set(title='Hubbard 4 site / half filling - variation',
        xlabel=r'$\frac{U}{t}$', ylabel=r'Energy')

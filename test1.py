@@ -10,6 +10,7 @@ import numpy as np
 #import edvaraux.newHelpersMulOrb as hel
 from scipy.optimize import minimize
 from matplotlib import pyplot as plt
+import scipy.linalg as lalg
 
 
 
@@ -64,19 +65,24 @@ from matplotlib import pyplot as plt
 #plt.show()
 
 #print(np.array([1,2,3])+4)
-
-a = np.zeros(20)
-inds = np.array([1,5,12])
-a[inds+3] = 1
-
-print(a)
-
-
+#
+#a = np.zeros(20)
+#inds = np.array([1,5,12])
+#a[inds+3] = 1
+#
+#print(a)
 
 
+a = np.array([[1,2],[3,4]])
+b = np.array([[1,0],[0,4]])
+
+print(np.exp(-a))
+print(np.exp(-b))
 
 
 
+print(lalg.expm(-a))
+print(lalg.expm(-b))
 
 
 
