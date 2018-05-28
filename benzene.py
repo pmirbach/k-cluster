@@ -17,6 +17,9 @@ from scipy.linalg import expm
 from plot_scripts import plot_font_size
 
 import pdb
+import pickle
+
+flg_pickle_save = 0
 
 import sys
 sys.path.append("../../")
@@ -47,14 +50,15 @@ ham, blockCar = hel.findAndSetBlockCar(cfg,par,nameStrings)
 spStr = ['_up', '_dn']
 
 #uVec = np.arange(0.0,20.0,0.2)
-uVec = np.linspace(start=0.0, stop=8.0, num=100)
+uVec = np.linspace(start=0.0, stop=10.0, num=50)
 #uVec = np.array([7.6])
 #betaVec = np.array([20.0])
 
 par.beta = 20.0
 
 Energy = np.zeros(uVec.size)
-Energy_var = np.zeros(uVec.size)
+Energy_var_Ht = np.zeros(uVec.size)
+Energy_var_Ht2 = np.zeros(uVec.size)
 Energy_gutzwiller = np.zeros(uVec.size)
 Energy_baeriswyl = np.zeros(uVec.size)
 
@@ -131,6 +135,7 @@ print('\n{}\n'.format(('-')*70))
 
 def get_E(x, Phi_list, H):
     Psi = np.dot(x, Phi_list)
+    Psi /= np.sqrt(np.dot(Psi, Psi))
     return np.min(np.dot(Psi, H * Psi))
 x_0 = np.ones(2)
 cons = {'type': 'eq', 'fun': lambda x: np.dot(x,x) - 1}
@@ -187,7 +192,7 @@ Ht_N4_dense = sparse2dense_renk(Ht_N4)
 
 def get_E_Baeriswyl(x, Phi_0, H):
     
-    oper_B = expm(x * Ht_N4_dense)    
+    oper_B = expm(-x * Ht_N4_dense)    
     Psi_B = np.dot(oper_B, Phi_0)    
     
     Psi_B /= np.sqrt(np.dot(Psi_B, Psi_B))
@@ -227,8 +232,16 @@ for iU in range(uVec.size):
     Phi_1 = Ht * Phi_0
     Phi_1 /= np.sqrt(np.dot(Phi_1, Phi_1))
     
-    res_0 = minimize(get_E, [1,1], args=([Phi_0, Phi_1], H), method='SLSQP',constraints=cons)
-    Energy_var[iU] = res_0.fun
+    Phi_2 = Ht * Phi_1
+    Phi_2 /= np.sqrt(np.dot(Phi_2, Phi_2))
+    
+    
+    res_Ht = minimize(get_E, [1,1], args=([Phi_0, Phi_1], H), method='SLSQP',constraints=cons)
+    Energy_var_Ht[iU] = res_Ht.fun
+    
+    res_Ht2 = minimize(get_E, [1,1,1], args=([Phi_0, Phi_1, Phi_2], H), method='SLSQP',constraints=cons)
+    Energy_var_Ht2[iU] = res_Ht2.fun
+    
     ################################################################################################
     
     # Gutzwiller
@@ -265,15 +278,27 @@ for iU in range(uVec.size):
     Energy[iU] = hel.calcExpecValueRes(eigVecs,ham['diagblk_ind'],ham['diagblk_qnum'],NG,ZZ1BlockTil,ZZ1Til,
                                         H,cfg,par,thermo)
     
+
+
+if flg_pickle_save:
+
+    pickle_file = open('data.pkl', mode='bw')
     
+    pickle_object = (uVec, Energy, Energy_var_Ht, Energy_var_Ht2, Energy_gutzwiller, Energy_baeriswyl)
+    pickle.dump(pickle_object, pickle_file)
+    
+    pickle_file.close()
+
 
 
 
 fig, ax = plt.subplots()
 
 
-ax.plot(uVec, Energy, label='exact')
-ax.plot(uVec[1:], Energy_var[1:], label=r'$\alpha \cdot$ single + $\beta \cdot H_t \cdot $ single')
+ax.plot(uVec, Energy, '-', label='exact')
+ax.plot(uVec[1:], Energy_var_Ht[1:], '-.', label=r'$\alpha \cdot$ single + $\beta \cdot H_t \cdot $ single')
+ax.plot(uVec[1:], Energy_var_Ht2[1:], '--',
+        label=r'$\alpha \cdot$ single + $\beta \cdot H_t \cdot $ single + $\gamma \cdot H_t^2 \cdot $ single')
 ax.plot(uVec, Energy_gutzwiller,'--', label=r'Gutzwiller')
 ax.plot(uVec, Energy_baeriswyl,'--', label=r'Baeriswyl')
 
@@ -290,13 +315,6 @@ plt.show()
 #    ax.plot(uVec, eig_vals_save[i,:])
 #
 #plt.show()
-#    
-#for x in eig_vecs_save[:,-1]:
-#    print(x)
-
-
-#for x in ham['oper']:
-#    print(x)
 
 
 
