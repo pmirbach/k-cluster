@@ -50,7 +50,7 @@ ham, blockCar = hel.findAndSetBlockCar(cfg,par,nameStrings)
 spStr = ['_up', '_dn']
 
 #uVec = np.arange(0.0,20.0,0.2)
-uVec = np.linspace(start=0.0, stop=10.0, num=50)
+uVec = np.linspace(start=0.0, stop=10.0, num=25)
 #uVec = np.array([7.6])
 #betaVec = np.array([20.0])
 
@@ -60,6 +60,7 @@ Energy = np.zeros(uVec.size)
 Energy_var_Ht = np.zeros(uVec.size)
 Energy_var_Ht2 = np.zeros(uVec.size)
 Energy_gutzwiller = np.zeros(uVec.size)
+Energy_jastrow = np.zeros(uVec.size)
 Energy_baeriswyl = np.zeros(uVec.size)
 
 
@@ -122,6 +123,23 @@ for i in range(par.NimpOrbs-1):
     for j in range(i+1, par.NimpOrbs):
         oper_2double += oper_double[i] * oper_double[j]
 
+oper_2double_sep = []
+for i in range(par.NimpOrbs-1):
+#    oper_ij = np.zeros((36,36))
+    for j in range(i+1, par.NimpOrbs):
+        oper_ij = oper_double[i] * oper_double[j]
+        oper_2double_sep.append(oper_ij)
+
+
+#fig, axes = plt.subplots(2,3)
+#
+#for i, ax in enumerate(fig.axes):
+#    ax.imshow(oper_2double_sep[i])
+#
+#plt.show()
+#
+#exit()
+
 
 
 single_states_half = get_states_Full(oper_single, ind0, ind1)
@@ -157,9 +175,24 @@ def get_E_Gutzwiller(x, Psi_0, H):
     
     Psi_G /= np.sqrt(np.dot(Psi_G, Psi_G))
     return np.min(np.dot(Psi_G, H * Psi_G))
-#cons_G = {'type': 'ineq', 'fun': lambda x: np.dot(x,x) - 1}
     
 
+#######################################       Jastrow        ########################################
+
+def oper_Jastrow(f):
+    oper_J_exp = np.zeros((36,36))
+    for i, oper in enumerate(oper_2double_sep):
+        oper_J_exp += f[i] * oper
+    oper_J = expm(-oper_J_exp)
+    return oper_J
+        
+
+def get_E_Jastrow(x, Psi_0, H):
+    oper_J = oper_Jastrow(x)
+    Psi_J = np.dot(oper_J, Psi_0)
+    
+    Psi_J /= np.sqrt(np.dot(Psi_J, Psi_J))
+    return np.min(np.dot(Psi_J, H * Psi_J))
 
 
 #######################################         Ht         ########################################
@@ -248,6 +281,11 @@ for iU in range(uVec.size):
     res_G = minimize(get_E_Gutzwiller, 1, args=(Phi_HF_0, H_N4), method='SLSQP',bounds=((0,1),))
     Energy_gutzwiller[iU] = res_G.fun
     ################################################################################################
+
+    # Jastrow
+    res_J = minimize(get_E_Jastrow, 1 * np.ones((6,)), args=(Phi_HF_0, H_N4), method='SLSQP')
+    Energy_jastrow[iU] = res_J.fun
+    ################################################################################################
     
     # Baeriswyl
     Psi_inf_N4 = np.zeros(36)
@@ -301,6 +339,7 @@ ax.plot(uVec[1:], Energy_var_Ht2[1:], '--',
         label=r'$\alpha \cdot$ single + $\beta \cdot H_t \cdot $ single + $\gamma \cdot H_t^2 \cdot $ single')
 ax.plot(uVec, Energy_gutzwiller,'--', label=r'Gutzwiller')
 ax.plot(uVec, Energy_baeriswyl,'--', label=r'Baeriswyl')
+ax.plot(uVec, Energy_jastrow, '--', label=r'Jastrow')
 
 
 ax.set(title='Hubbard 4 site / half filling - variation',

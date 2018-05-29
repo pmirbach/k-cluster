@@ -45,11 +45,11 @@ fig, ax = plt.subplots(figsize=(18.0, 12.0))
 
 ax.plot(uVec, Energy, '-', color='black', label='Exact solution')
 ax.plot(uVec[1:], Energy_var_Ht[1:], '-', color=tableau20[4], 
-        label=r'$\alpha \cdot$ single + $\beta \cdot H_t \cdot $ single')
+        label=r'$(\alpha + \beta \cdot H_t) \Psi_{atomic} $')
 ax.plot(uVec[1:], Energy_var_Ht2[1:], '-', color=tableau20[0] , 
-        label=r'$\alpha \cdot$ single + $\beta \cdot H_t \cdot $ single + $\gamma \cdot H_t^2 \cdot $ single')
-ax.plot(uVec, Energy_gutzwiller,'--', color=tableau20[2] ,  label=r'Gutzwiller')
-ax.plot(uVec, Energy_baeriswyl,'--', color=tableau20[6], label=r'Baeriswyl')
+        label=r'$(\alpha + \beta \cdot H_t + \gamma \cdot H_t^2) \Psi_{atomic} $')
+ax.plot(uVec, Energy_gutzwiller,'--', color=tableau20[2] ,  label=r'Gutzwiller: $\Psi_G = \prod_i (\hat{1} - (1-g) \hat{D}_i) \Psi_{HF}$ ')
+ax.plot(uVec, Energy_baeriswyl,'--', color=tableau20[6], label=r'Baeriswyl: $\Psi_B = \exp( -\eta H_t )  \Psi_{atomic}$')
 
 
 ax.set(title='Hubbard 4 site / half filling - variation',
